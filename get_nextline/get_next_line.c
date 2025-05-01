@@ -6,7 +6,7 @@
 /*   By: aldiaz-u <aldiaz-u@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 11:56:13 by aldiaz-u          #+#    #+#             */
-/*   Updated: 2025/04/30 18:48:48 by aldiaz-u         ###   ########.fr       */
+/*   Updated: 2025/05/01 11:43:31 by aldiaz-u         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ char	*read_line(int fd, char *stack)
 {
 	char	*buffer;
 	char	*temp;
-	size_t	number_bytes;
+	ssize_t	number_bytes;
 
 	buffer = malloc(BUFFER_SIZE + 1);
 	if (!buffer)
@@ -48,29 +48,27 @@ char	*read_line(int fd, char *stack)
 	return (stack);
 }
 
-static char	*extract_line(char *stack, char **remainder)
+static char	*extract_line(char *s, char **r)
 {
-	char	*line;
-	char	*start_line;
-	char	*start_stack;
+	char	*l;
+	size_t	i;
 
-	if (*stack == '\0')
-		return (free_and_return(stack, NULL));
-	line = malloc(ft_strlen(stack) + 1);
-	if (!line)
-		return (free_and_return(stack, NULL));
-	start_line = line;
-	start_stack = stack;
-	while (*stack != '\0' && *stack != '\n')
-		*line++ = *stack++;
-	if (*stack == '\n')
-		*line++ = *stack++;
-	*line = '\0';
-	*remainder = ft_strdup(stack);
-	free(start_stack);
-	if (!*remainder && *stack)
-		return (free_and_return(start_line, NULL));
-	return (start_line);
+	i = 0;
+	if (!s || !s[0])
+		return (free(s), NULL);
+	while (s[i] && s[i] != '\n')
+		i++;
+	l = ft_substr(s, 0, i + (s[i] == '\n'));
+	if (!l)
+		return (free_and_return(s, NULL));
+	*r = ft_strdup(s + i + (s[i] == '\n'));
+	if (!*r && s[i])
+	{
+		free(l);
+		free(s);
+		return (NULL);
+	}
+	return (free(s), l);
 }
 
 char	*get_next_line(int fd)
@@ -79,13 +77,12 @@ char	*get_next_line(int fd)
 	char		*stack;
 	char		*line;
 
-	if (fd == -1)
+	if (fd < 0 || BUFFER_SIZE <= 0 || read(fd, 0, 0) < 0)
 	{
 		free(remainder);
+		remainder = NULL;
 		return (NULL);
 	}
-	if (fd < 0 || BUFFER_SIZE <= 0)
-		return (NULL);
 	if (remainder)
 		stack = ft_strdup(remainder);
 	else
@@ -100,27 +97,40 @@ char	*get_next_line(int fd)
 	line = extract_line(stack, &remainder);
 	return (line);
 }
-int	main(void)
-{
-	int fd = open("prueba.txt", O_RDONLY);
-	if (fd < 0)
-	{
-		perror("Error al abrir el archivo");
-		return (1);
-	}
+// int	main(void)
+// {
+// 	int fd = open("prueba.txt", O_RDONLY);
+// 	if (fd < 0)
+// 	{
+// 		perror("Error al abrir el archivo");
+// 		return (1);
+// 	}
 
-	char *line;
-	int count = 0;
+// 	char *line;
+// 	int count = 0;
 
-	// 🔁 Leer solo 3 líneas
-	while (count < 3 && (line = get_next_line(fd)))
-	{
-		printf("Línea %d: %s", count + 1, line);
-		free(line);
-		count++;
-	}
+// 	// 🔁 Leer todas las líneas incluyendo los saltos de línea y NULL
+// 	while ((line = get_next_line(fd)))
+// 	{
+// 		printf("Línea %d: [", count + 1);
+// 		for (int i = 0; line[i] != '\0'; i++)
+// 		{
+// 			if (line[i] == '\n')
+// 				printf("\\n"); // Mostrar explícitamente el salto de línea
+// 			else
+// 				putchar(line[i]); // Mostrar el resto de los caracteres
+// 		}
+// 		printf("]\n");
+// 		free(line);
+// 		count++;
+// 	}
 
-	get_next_line(-1);
-	close(fd);
-	return (0);
-}
+// 	// Mostrar NULL al final
+// 	printf("Línea %d: [NULL]\n", count + 1);
+// 	printf("BUFFER_SIZE: %i\n", BUFFER_SIZE);
+
+// 	// Liberar recursos adicionales si es necesario
+// 	get_next_line(-1); // Forzar liberación de la memoria estática en GNL
+// 	close(fd);
+// 	return (0);
+// }

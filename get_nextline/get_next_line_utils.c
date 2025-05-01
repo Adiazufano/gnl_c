@@ -6,7 +6,7 @@
 /*   By: aldiaz-u <aldiaz-u@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 11:56:42 by aldiaz-u          #+#    #+#             */
-/*   Updated: 2025/04/30 17:37:37 by aldiaz-u         ###   ########.fr       */
+/*   Updated: 2025/05/01 11:38:07 by aldiaz-u         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,9 @@ char	*ft_strchr(const char *s, int c)
 		}
 		s++;
 	}
-	return (0);
+	if ((char)c == '\0')
+		return ((char *)s);
+	return (NULL);
 }
 
 size_t	ft_strlen(const char *s)
@@ -30,6 +32,8 @@ size_t	ft_strlen(const char *s)
 	size_t	count;
 
 	count = 0;
+	if (!s)
+		return (0);
 	while (*s)
 	{
 		s++;
@@ -44,6 +48,8 @@ char	*ft_strdup(const char *s)
 	int		len;
 	int		i;
 
+	if (!s)
+		return (NULL);
 	len = ft_strlen(s) + 1;
 	array = (char *)malloc(len * sizeof(char));
 	i = 0;
@@ -63,6 +69,8 @@ char	*ft_strjoin(char const *s1, char const *s2)
 	char	*join;
 	char	*temp;
 
+	if (!s1 || !s2)
+		return (NULL);
 	join = (char *)malloc((ft_strlen(s1) + ft_strlen(s2) + 1) * sizeof(char));
 	temp = join;
 	if (!join)
@@ -73,4 +81,30 @@ char	*ft_strjoin(char const *s1, char const *s2)
 		*temp++ = *s2++;
 	*temp = '\0';
 	return (join);
+}
+
+char	*ft_substr(char const *s, unsigned int start, size_t len)
+{
+	size_t		pos;
+	size_t		s_len;
+	char		*substr;
+
+	pos = 0;
+	if (!s)
+		return (NULL);
+	s_len = ft_strlen(s);
+	if (start >= s_len)
+		return (ft_strdup(""));
+	if (len > s_len - start)
+		len = s_len - start;
+	substr = (char *)malloc((len + 1) * sizeof(char));
+	if (!substr)
+		return (NULL);
+	while (pos < len)
+	{
+		substr[pos] = s[start + pos];
+		pos++;
+	}
+	substr[pos] = '\0';
+	return (substr);
 }
